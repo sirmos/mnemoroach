@@ -15,19 +15,19 @@ CockroachDB is built for exactly this problem. It is a distributed database that
 - Stores agent memory (facts, task state, conversation, context) with vector embeddings for search
 - Keeps working through node and region failures, because the memory lives in CockroachDB, not on one machine
 - Saves task progress after every step, so a crashed or interrupted task resumes from where it left off, not from the start
-- Lets you query what the agent knew at any point in the past using `AS OF SYSTEM TIME`
+- Allows you query what the agent knew at any point in the past using `AS OF SYSTEM TIME`
 - Lets you roll a specific memory back to an earlier version, with a full audit trail of what changed and why
 
 ## CockroachDB tools used
 
-- **CockroachDB Cloud Managed MCP Server** — lets Claude Code or Cursor connect directly to the cluster during development, read only by default. Config in `mcp.config.json`.
-- **Distributed Vector Indexing** — the `memories` table has a vector column with a distributed index, used for semantic recall in `memory/store.py`.
-- **ccloud CLI** — used in `scripts/` for provisioning and for the chaos test, which decommissions a node mid task to show the agent keeps working.
+- **CockroachDB Cloud Managed MCP Server** - allows Claude Code or Cursor connect directly to the cluster during development, read only by default. Config in `mcp.config.json`.
+- **Distributed Vector Indexing** - the `memories` table has a vector column with a distributed index, used for semantic recall in `memory/store.py`.
+- **ccloud CLI** - used in `scripts/` for provisioning and for the chaos test, which decommissions a node mid task to show the agent keeps working.
 
 ## AWS services used
 
-- **AWS Lambda** — runs the agent loop
-- **Amazon Bedrock** — the reasoning model and the embedding model
+- **AWS Lambda** - runs the agent loop
+- **Amazon Bedrock** - the reasoning model and the embedding model
 
 ## Project layout
 
