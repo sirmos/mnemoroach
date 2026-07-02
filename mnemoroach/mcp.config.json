@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "cockroachdb": {
+      "url": "https://cockroachlabs.cloud/mcp",
+      "description": "CockroachDB Cloud Managed MCP Server, connected to the Mnemoroach cluster. Read only by default.",
+      "auth": {
+        "type": "bearer",
+        "token_env": "COCKROACH_MCP_TOKEN"
+      }
+    }
+  }
+}
