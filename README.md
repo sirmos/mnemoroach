@@ -4,6 +4,8 @@ Memory for AI agents that does not go down.
 
 Mnemoroach is an agent memory system built on CockroachDB. It stores what an agent knows, keeps working when a node or a whole region fails, and lets you look back in time to see and undo what the agent remembered.
 
+![Mnemoroach architecture](docs/architecture.svg)
+
 ## Why this exists
 
 Most agent memory is a thin wrapper around a vector store. That works until something breaks. If the database node holding an agent's memory goes down, the agent does not slow down, it just stops. And if a bad memory gets written in, by a mistake or by a prompt injection, there is usually no way to tell when it happened or to undo it cleanly.
@@ -11,6 +13,8 @@ Most agent memory is a thin wrapper around a vector store. That works until some
 CockroachDB is built for exactly this problem. It is a distributed database that keeps running when nodes fail, and it keeps history, so you can query what your data looked like in the past. Mnemoroach uses both of these directly, not as an afterthought.
 
 ## What it does
+-
+![Mnemoroach architecture](docs/architecture.svg)
 
 - Stores agent memory (facts, task state, conversation, context) with vector embeddings for search
 - Keeps working through node and region failures, because the memory lives in CockroachDB, not on one machine
