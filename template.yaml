@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Mnemoroach agent loop, running on Lambda, backed by CockroachDB
+
+Parameters:
+  CockroachUrl:
+    Type: String
+    Description: CockroachDB connection string. Pass this in at deploy time, never commit it.
+    NoEcho: true
+
+Resources:
+  AgentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mnemoroach-agent
+      Handler: agent.handler.lambda_handler
+      Runtime: python3.12
+      Timeout: 60
+      MemorySize: 512
+      Environment:
+        Variables:
+          COCKROACH_URL: !Ref CockroachUrl
+          AWS_REGION: !Ref AWS::Region
+          BEDROCK_MODEL_ID: anthropic.claude-3-5-sonnet-20241022-v2:0
+          BEDROCK_EMBED_MODEL_ID: amazon.titan-embed-text-v2:0
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: '*'
+      Events:
+        AgentApi:
+          Type: Api
+          Properties:
+            Path: /run
+            Method: post
+
+Outputs:
+  AgentFunctionArn:
+    Value: !GetAtt AgentFunction.Arn
+  ApiEndpoint:
+    Description: Invoke URL for the agent
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/run"
