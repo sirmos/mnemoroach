@@ -7,15 +7,16 @@
 # resuming on another node with no lost work.
 #
 # It assumes a local multi node CockroachDB cluster started with
-# scripts/start_cluster.sh, and that COCKROACH_URL points at one
-# of the nodes.
+# docker-compose.local.yml and initialized with
+# scripts/init_local_cluster.sh, and that COCKROACH_URL points at
+# one of the nodes.
 #
 # Usage:
 #   ./scripts/chaos_test.sh <task_id>
 
 set -euo pipefail
 
-TASK_ID="${1:-$(uuidgen)}"
+TASK_ID="${1:-$(python3 -c 'import uuid; print(uuid.uuid4())')}"
 
 echo "starting task $TASK_ID"
 python -m scripts.run_task "$TASK_ID" &
@@ -23,9 +24,13 @@ TASK_PID=$!
 
 sleep 2
 
-echo "task is running, now killing node 2 to simulate a failure"
-cockroach node decommission 2 --insecure --wait=none || true
-# for a harder demo, use: docker kill roach2
+echo "task is running, now killing node 2 to simulate a real crash"
+docker kill roach2
+# for a softer, graceful demo instead of a hard crash, you could use:
+#   cockroach node decommission 2 --insecure --host=localhost:26257
+# but that needs the cockroach binary installed on this machine,
+# not just inside the containers, and a clean decommission is a
+# less honest test of surviving an actual failure anyway.
 
 sleep 2
 
@@ -48,3 +53,6 @@ print('final task state:', state)
 " "$TASK_ID"
 
 echo "done. task_state above should show status done, with no gap in the steps."
+echo ""
+echo "roach2 is still stopped. bring it back before running this again:"
+echo "  docker compose -f docker-compose.local.yml start roach2"
