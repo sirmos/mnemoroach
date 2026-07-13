@@ -24,6 +24,23 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _vector_literal(embedding):
+    """
+    psycopg does not know how to adapt a plain Python list into
+    CockroachDB's VECTOR type on its own, it treats it like a
+    regular array instead. So we format it into the text form
+    CockroachDB expects, for example "[0.1,0.2,0.3]", and cast it
+    explicitly in the SQL itself with ::VECTOR.
+
+    Returns None untouched, so optional embeddings still work.
+    """
+    if embedding is None:
+        return None
+    if isinstance(embedding, str):
+        return embedding
+    return "[" + ",".join(str(x) for x in embedding) + "]"
+
+
 def get_connection():
     """
     Open a connection to CockroachDB using the connection string
@@ -49,9 +66,9 @@ def write_memory(agent_id, kind, content, embedding=None, metadata=None):
             cur.execute(
                 """
                 INSERT INTO memories (memory_id, agent_id, kind, content, embedding, metadata)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s::VECTOR, %s)
                 """,
-                (memory_id, agent_id, kind, content, embedding, json.dumps(metadata)),
+                (memory_id, agent_id, kind, content, _vector_literal(embedding), json.dumps(metadata)),
             )
             cur.execute(
                 """
@@ -71,6 +88,7 @@ def recall(agent_id, query_embedding, kind=None, limit=5):
     agent's semantic search over its own memory, backed by
     CockroachDB's distributed vector index.
     """
+    query_vector = _vector_literal(query_embedding)
     with get_connection() as conn:
         with conn.cursor() as cur:
             if kind:
@@ -79,10 +97,10 @@ def recall(agent_id, query_embedding, kind=None, limit=5):
                     SELECT memory_id, kind, content, metadata, created_at
                     FROM memories
                     WHERE agent_id = %s AND kind = %s
-                    ORDER BY embedding <-> %s
+                    ORDER BY embedding <-> %s::VECTOR
                     LIMIT %s
                     """,
-                    (agent_id, kind, query_embedding, limit),
+                    (agent_id, kind, query_vector, limit),
                 )
             else:
                 cur.execute(
@@ -90,10 +108,10 @@ def recall(agent_id, query_embedding, kind=None, limit=5):
                     SELECT memory_id, kind, content, metadata, created_at
                     FROM memories
                     WHERE agent_id = %s
-                    ORDER BY embedding <-> %s
+                    ORDER BY embedding <-> %s::VECTOR
                     LIMIT %s
                     """,
-                    (agent_id, query_embedding, limit),
+                    (agent_id, query_vector, limit),
                 )
             return cur.fetchall()
 
@@ -182,10 +200,10 @@ def rollback_memory(memory_id, agent_id, as_of_timestamp, reason):
             cur.execute(
                 """
                 UPDATE memories
-                SET content = %s, embedding = %s, metadata = %s, updated_at = now()
+                SET content = %s, embedding = %s::VECTOR, metadata = %s, updated_at = now()
                 WHERE memory_id = %s
                 """,
-                (old["content"], old["embedding"], old["metadata"], memory_id),
+                (old["content"], _vector_literal(old["embedding"]), old["metadata"], memory_id),
             )
             cur.execute(
                 """
