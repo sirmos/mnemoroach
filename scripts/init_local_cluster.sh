@@ -16,6 +16,9 @@ sleep 3
 echo "creating the mnemoroach database"
 docker exec roach1 ./cockroach sql --insecure --execute "CREATE DATABASE IF NOT EXISTS mnemoroach;"
 
+echo "enabling vector indexes (this is a public preview feature, off by default)"
+docker exec roach1 ./cockroach sql --insecure --execute "SET CLUSTER SETTING feature.vector_index.enabled = true;"
+
 echo "loading the schema"
 docker exec -i roach1 ./cockroach sql --insecure --database mnemoroach < db/schema.sql
 
