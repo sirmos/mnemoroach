@@ -22,6 +22,9 @@ docker exec roach1 ./cockroach sql --insecure --execute "SET CLUSTER SETTING fea
 echo "loading the schema"
 docker exec -i roach1 ./cockroach sql --insecure --database mnemoroach < db/schema.sql
 
+echo "seeding a default agent, so the agent code has something to reference"
+docker exec roach1 ./cockroach sql --insecure --database mnemoroach --execute "INSERT INTO agents (agent_id, name) VALUES ('00000000-0000-0000-0000-000000000001', 'default-agent') ON CONFLICT DO NOTHING;"
+
 echo "done. connection string for local .env:"
 echo "COCKROACH_URL=postgresql://root@localhost:26257/mnemoroach?sslmode=disable"
 echo ""
