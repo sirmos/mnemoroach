@@ -17,8 +17,29 @@
 set -euo pipefail
 
 if [ -z "${COCKROACH_URL:-}" ]; then
-  echo "set COCKROACH_URL first, for example:"
-  echo "  export COCKROACH_URL=postgresql://user:pass@host:26257/mnemoroach?sslmode=verify-full"
+  echo "set COCKROACH_URL first, pointed at the CLOUD cluster, not localhost."
+  echo "Lambda cannot reach a cluster running in your Codespace."
+  echo ""
+  echo "It also needs sslrootcert pointing at the bundled cert path, since"
+  echo "Lambda has no ~/.postgresql directory of its own. For example:"
+  echo '  export COCKROACH_URL="postgresql://demo_user:PASSWORD@your-cluster-host:26257/mnemoroach?sslmode=verify-full&sslrootcert=/var/task/certs/cockroachdb-ca.crt"'
+  exit 1
+fi
+
+if [[ "$COCKROACH_URL" != *"sslrootcert=/var/task/certs"* ]]; then
+  echo "warning: COCKROACH_URL does not include sslrootcert=/var/task/certs/cockroachdb-ca.crt"
+  echo "without it, the Lambda function will fail to connect with a certificate error."
+  echo "see certs/README.txt for how to set this up."
+  read -p "continue anyway? (y/N) " -n 1 -r
+  echo
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    exit 1
+  fi
+fi
+
+if [ ! -f "certs/cockroachdb-ca.crt" ]; then
+  echo "certs/cockroachdb-ca.crt not found. copy your cluster's CA cert there first:"
+  echo "  cp ~/.postgresql/root.crt certs/cockroachdb-ca.crt"
   exit 1
 fi
 
