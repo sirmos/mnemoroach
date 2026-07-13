@@ -21,7 +21,7 @@ Resources:
         Variables:
           COCKROACH_URL: !Ref CockroachUrl
           AWS_REGION: !Ref AWS::Region
-          BEDROCK_MODEL_ID: us.anthropic.claude-sonnet-5
+          BEDROCK_MODEL_ID: us.anthropic.claude-haiku-4-5-20251001-v1:0
           BEDROCK_EMBED_MODEL_ID: amazon.titan-embed-text-v2:0
       Policies:
         - Statement:
