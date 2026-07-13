@@ -18,7 +18,7 @@ DEFAULT_PROMPT = "Summarize what you know so far and suggest the next step."
 
 
 def main():
-    task_id = sys.argv[1] if len(sys.argv) > 1 else str(uuid.uuid4())
+    task_id = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else str(uuid.uuid4())
     prompt = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_PROMPT
 
     result = run_task(DEFAULT_AGENT_ID, task_id, prompt)
