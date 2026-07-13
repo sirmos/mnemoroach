@@ -16,6 +16,7 @@ The loop works like this:
 """
 
 import os
+import json
 import uuid
 import boto3
 
@@ -38,9 +39,8 @@ def embed(text):
     """
     response = bedrock.invoke_model(
         modelId=os.environ.get("BEDROCK_EMBED_MODEL_ID", "amazon.titan-embed-text-v2:0"),
-        body='{"inputText": %r}' % text,
+        body=json.dumps({"inputText": text}),
     )
-    import json
     payload = json.loads(response["body"].read())
     return payload["embedding"]
 
@@ -57,7 +57,6 @@ def call_model(prompt, context_memories):
         else prompt
     )
 
-    import json
     response = bedrock.invoke_model(
         modelId=BEDROCK_MODEL_ID,
         body=json.dumps(
