@@ -1,0 +1,37 @@
+version: "3.7"
+#
+# Local 3 node CockroachDB cluster, used for the chaos test demo.
+# This is not the production cluster. This is the one you record
+# yourself killing on camera, because Cloud dedicated clusters
+# don't give you shell access to individual nodes.
+#
+# Start with: docker compose up -d
+# Then init once with: scripts/init_local_cluster.sh
+# Kill a node mid demo with: docker kill roach2
+
+services:
+  roach1:
+    image: cockroachdb/cockroach:v24.1.0
+    command: start --insecure --join=roach1,roach2,roach3
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - roach1-data:/cockroach/cockroach-data
+
+  roach2:
+    image: cockroachdb/cockroach:v24.1.0
+    command: start --insecure --join=roach1,roach2,roach3
+    volumes:
+      - roach2-data:/cockroach/cockroach-data
+
+  roach3:
+    image: cockroachdb/cockroach:v24.1.0
+    command: start --insecure --join=roach1,roach2,roach3
+    volumes:
+      - roach3-data:/cockroach/cockroach-data
+
+volumes:
+  roach1-data:
+  roach2-data:
+  roach3-data:
