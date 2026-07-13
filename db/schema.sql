@@ -17,7 +17,10 @@ CREATE TABLE IF NOT EXISTS memories (
     agent_id UUID NOT NULL REFERENCES agents(agent_id),
     kind STRING NOT NULL CHECK (kind IN ('fact', 'task_state', 'context', 'conversation')),
     content STRING NOT NULL,
-    embedding VECTOR(1536),
+    -- 1024 matches Amazon Titan Text Embeddings V2's default output size.
+    -- Titan V2 can also produce 256 or 512 dimensional embeddings if you
+    -- configure it that way, but this project uses the default.
+    embedding VECTOR(1024),
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
